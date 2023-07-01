@@ -5,7 +5,7 @@
 #import <ReactCommon/CallInvoker.h>
 
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
+
 #import <MetalKit/MetalKit.h>
 
 @interface EngineView : MTKView
@@ -31,14 +31,14 @@
     return self;
 }
 
-- (void)setIsTransparentFlag:(NSNumber*)isTransparentFlag {
+- (void)setIsTransparentFlag:(NSNumber*)isTransparentFlag { /*
     BOOL isTransparent = [isTransparentFlag intValue] == 1;
     if(isTransparent){
         [self setOpaque:NO];
     } else {
         [self setOpaque:YES];
     }
-    self.isTransparent = isTransparent;
+    self.isTransparent = isTransparent; */
 }
 
 - (void)setMSAA:(NSNumber*)value {
@@ -49,7 +49,7 @@
     [super setBounds:bounds];
     [BabylonNativeInterop updateView:self];
 }
-
+/*
 - (void)touchesBegan:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
     [BabylonNativeInterop reportTouchEvent:self touches:touches event:event];
 }
@@ -64,9 +64,9 @@
 
 - (void)touchesCancelled:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
     [BabylonNativeInterop reportTouchEvent:self touches:touches event:event];
-}
+} */
 
-- (void)drawRect:(CGRect)rect {
+- (void)drawRect:(CGRect)rect { /*
     if ([BabylonNativeInterop isXRActive]) {
         if (!xrView) {
             xrView = [[MTKView alloc] initWithFrame:self.bounds device:self.device];
@@ -79,7 +79,7 @@
         [BabylonNativeInterop updateXRView:nil];
         [xrView removeFromSuperview];
         xrView = nil;
-    }
+    } */
 
     [BabylonNativeInterop renderView];
 }
@@ -88,11 +88,11 @@
     [BabylonNativeInterop updateXRView:nil];
 }
 
-- (void)takeSnapshot {
+- (void)takeSnapshot { /*
     // We must take the screenshot on the main thread otherwise we might fail to get a valid handle on the view's image.
     dispatch_async(dispatch_get_main_queue(), ^{
         // Start the graphics context.
-        UIGraphicsBeginImageContextWithOptions(self.bounds.size, YES /* opaque */, 0.0f);
+        UIGraphicsBeginImageContextWithOptions(self.bounds.size, YES, 0.0f);
         
         // Draw the current state of the view into the graphics context.
         [self drawViewHierarchyInRect:self.bounds afterScreenUpdates:NO];
@@ -107,7 +107,7 @@
         if (self.onSnapshotDataReturned != nil) {
             self.onSnapshotDataReturned(@{ @"data":encodedData});
         }
-    });
+    }); */
 }
 
 @end
