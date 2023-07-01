@@ -5,6 +5,7 @@
 #import <ReactCommon/CallInvoker.h>
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import <MetalKit/MetalKit.h>
 
 @interface EngineView : MTKView
@@ -17,6 +18,7 @@
 
 @implementation EngineView {
     const RCTBridge* bridge;
+    MTKView* xrView;
 }
 
 - (instancetype)init:(RCTBridge*)_bridge {
@@ -31,6 +33,11 @@
 
 - (void)setIsTransparentFlag:(NSNumber*)isTransparentFlag {
     BOOL isTransparent = [isTransparentFlag intValue] == 1;
+    if(isTransparent){
+        [self setOpaque:NO];
+    } else {
+        [self setOpaque:YES];
+    }
     self.isTransparent = isTransparent;
 }
 
@@ -43,22 +50,62 @@
     [BabylonNativeInterop updateView:self];
 }
 
+- (void)touchesBegan:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
+    [BabylonNativeInterop reportTouchEvent:self touches:touches event:event];
+}
+
+- (void)touchesMoved:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
+    [BabylonNativeInterop reportTouchEvent:self touches:touches event:event];
+}
+
+- (void)touchesEnded:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
+    [BabylonNativeInterop reportTouchEvent:self touches:touches event:event];
+}
+
+- (void)touchesCancelled:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event {
+    [BabylonNativeInterop reportTouchEvent:self touches:touches event:event];
+}
+
 - (void)drawRect:(CGRect)rect {
+    if ([BabylonNativeInterop isXRActive]) {
+        if (!xrView) {
+            xrView = [[MTKView alloc] initWithFrame:self.bounds device:self.device];
+            xrView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+            xrView.userInteractionEnabled = false;
+            [self addSubview:xrView];
+            [BabylonNativeInterop updateXRView:xrView];
+        }
+    } else if (xrView) {
+        [BabylonNativeInterop updateXRView:nil];
+        [xrView removeFromSuperview];
+        xrView = nil;
+    }
+
     [BabylonNativeInterop renderView];
 }
 
--(void)dealloc {}
+-(void)dealloc {
+    [BabylonNativeInterop updateXRView:nil];
+}
 
 - (void)takeSnapshot {
+    // We must take the screenshot on the main thread otherwise we might fail to get a valid handle on the view's image.
     dispatch_async(dispatch_get_main_queue(), ^{
-        NSBitmapImageRep *bitmapRep = [self bitmapImageRepForCachingDisplayInRect:self.bounds];
-        [self cacheDisplayInRect:self.bounds toBitmapImageRep:bitmapRep];
-
-        NSData *jpgData = [bitmapRep representationUsingType:NSBitmapImageFileTypeJPEG properties:@{NSImageCompressionFactor:@(0.8)}];
-        NSString *encodedData = [jpgData base64EncodedStringWithOptions:0];
-
+        // Start the graphics context.
+        UIGraphicsBeginImageContextWithOptions(self.bounds.size, YES /* opaque */, 0.0f);
+        
+        // Draw the current state of the view into the graphics context.
+        [self drawViewHierarchyInRect:self.bounds afterScreenUpdates:NO];
+        
+        // Grab the image from the graphics context, and convert into a base64 encoded JPG.
+        NSImage* capturedImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        NSData* jpgData = UIImageJPEGRepresentation(capturedImage, .8f);
+        NSString* encodedData = [jpgData base64EncodedStringWithOptions:0];
+        
+        // Fire the onSnapshotDataReturned event if hooked up.
         if (self.onSnapshotDataReturned != nil) {
-            self.onSnapshotDataReturned(@{ @"data":encodedData });
+            self.onSnapshotDataReturned(@{ @"data":encodedData});
         }
     });
 }
@@ -84,13 +131,14 @@ RCT_EXPORT_MODULE(EngineViewManager)
 RCT_EXPORT_VIEW_PROPERTY(onSnapshotDataReturned, RCTDirectEventBlock)
 
 RCT_EXPORT_METHOD(takeSnapshot:(nonnull NSNumber*) reactTag) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        NSView* view = [self.bridge.uiManager viewForReactTag:reactTag];
+    // Marshal the takeSnapshot call to the appropriate EngineView.
+    [self.bridge.uiManager addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber*,NSView*>* viewRegistry) {
+        EngineView* view = (EngineView*)viewRegistry[reactTag];
         if (!view || ![view isKindOfClass:[EngineView class]]) {
             return;
         }
-        [(EngineView*)view takeSnapshot];
-    });
+        [view takeSnapshot];
+    }];
 }
 
 - (NSView*)view {

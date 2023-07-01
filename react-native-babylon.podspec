@@ -10,10 +10,10 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :osx => "10.14" }
+  s.platforms    = { :osx => "10.15" }
   s.source       = { :git => package["repository"]["url"], :tag => s.version }
 
-  s.source_files = "macos/**/*.{h,m,mm}"
+  s.source_files = "macos/*.{h,m,mm}"
   s.requires_arc = true
 
   s.vendored_libraries = 'macos/libs/*.a'
@@ -22,4 +22,3 @@ Pod::Spec.new do |s|
 
   s.dependency "React"
 end
-

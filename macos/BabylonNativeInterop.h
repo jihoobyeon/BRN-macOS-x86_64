@@ -9,4 +9,7 @@
 + (void)updateMSAA:(NSNumber*)value;
 + (void)renderView;
 + (void)resetView;
++ (void)updateXRView:(MTKView*)mtkView;
++ (bool)isXRActive;
++ (void)reportTouchEvent:(MTKView*)mtkView touches:(NSSet<UITouch*>*)touches event:(UIEvent*)event;
 @end

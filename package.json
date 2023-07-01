@@ -1,7 +1,7 @@
 {
   "name": "@babylonjs/react-native-macos-x86_64",
-  "title": "React Native Babylon for macOS on Mac with Intel chips",
-  "version": "1.5.1",
+  "title": "React Native Babylon for macOS",
+  "version": "1.6.1",
   "description": "Babylon Native integration into React Native",
   "main": "index.ts",
   "scripts": {
@@ -17,7 +17,7 @@
   ],
   "author": {
     "name": "Jihoo Byeon",
-    "email": "jihoobyeon@gmail.com"
+    "email": "jihoobyeon@email.com"
   },
   "homepage": "https://github.com/jihoobyeon/BRN-macOS-x86_64",
   "license": "MIT",
@@ -28,9 +28,10 @@
     "semver": "^7.3.2"
   },
   "peerDependencies": {
-    "@babylonjs/react-native": "1.5.1",
+    "@babylonjs/react-native": "1.6.1",
     "react": ">=16.13.1",
-    "react-native": ">=0.65.0 < 0.69.0"
+    "react-native": ">=0.71.0",
+    "react-native-macos": "^0.71.0"
   },
   "devDependencies": {
     "@rnw-scripts/eslint-config": "0.1.6",
