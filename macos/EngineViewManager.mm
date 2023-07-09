@@ -22,12 +22,18 @@
 }
 
 - (instancetype)init:(RCTBridge*)_bridge {
-    if (self = [super initWithFrame:CGRectZero device:MTLCreateSystemDefaultDevice()]) {
+		const CGSize monitor = [[NSScreen mainScreen] frame].size;
+		const CGSize appWin = [[NSApp mainWindow] frame].size;
+    if (self = [super initWithFrame:CGRectMake((appWin.width - monitor.width) / 2, (appWin.height - monitor.height) / 2, monitor.width, monitor.height)
+			device:MTLCreateSystemDefaultDevice()]) {
         bridge = _bridge;
         super.translatesAutoresizingMaskIntoConstraints = false;
         super.colorPixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
         super.depthStencilPixelFormat = MTLPixelFormatDepth32Float;
     }
+    
+    
+		[self setBounds:CGRectMake((appWin.width - monitor.width) / 2, (appWin.height - monitor.height) / 2, monitor.width, monitor.height)];
     return self;
 }
 
@@ -84,7 +90,7 @@
     [BabylonNativeInterop renderView];
 }
 
--(void)dealloc {
+- (void)dealloc {
     [BabylonNativeInterop updateXRView:nil];
 }
 
@@ -108,6 +114,13 @@
             self.onSnapshotDataReturned(@{ @"data":encodedData});
         }
     }); */
+}
+
+- (void)layout {
+		[super layout];
+		const CGSize monitor = [[NSScreen mainScreen] frame].size;
+		const CGSize appWin = [[NSApp mainWindow] frame].size;
+		self.frame = CGRectMake((appWin.width - monitor.width) / 2, (appWin.height - monitor.height) / 2, monitor.width, monitor.height);
 }
 
 @end
